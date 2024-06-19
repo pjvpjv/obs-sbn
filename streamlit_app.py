@@ -15,8 +15,8 @@ conn = st.connection("postgresql", type="sql")
 # Perform query.
 sbn_df = conn.query("""
                 SELECT count(*) as obscount, date_trunc('minute', obstime) as obsmin, stn FROM public.obs_sbn
-                WHERE obstime > (NOW() - INTERVAL '5 days')
-                GROUP BY stn, date_trunc('minute', obstime);""", ttl="5m")
+                WHERE obstime > (NOW() - INTERVAL '2 days')
+                GROUP BY stn, date_trunc('minute', obstime);""", ttl="60m")
 
 # @st.cache_data(ttl=300)
 # def load_data(url):
@@ -89,6 +89,11 @@ But it's otherwise a great (and did I mention _free_?) source of data.
 ''
 
 st.dataframe(sbn_df, use_container_width=True)
+pvt = sbn_df.pivot(columns="stn",index="obsmin",values="obscount")
+pvt['obsmin'] = pvt.index
+st.dataframe(pvt, use_container_width=True)
+
+st.bar_chart(pvt, x="obsmin", y=["F51","F52"])
 
 # Add some spacing
 ''
