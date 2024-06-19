@@ -1,2 +1,6 @@
 streamlit-nightly
 pandas
+psycopg2-binary
+sqlalchemy
+numpy
+scikit-learn

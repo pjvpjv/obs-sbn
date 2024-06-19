@@ -3,6 +3,20 @@ import pandas as pd
 import math
 from pathlib import Path
 
+# Initialize connection.
+conn = st.connection("postgresql", type="sql")
+
+# Perform query.
+sbn_df = conn.query("""
+                SELECT count(*) as obscount, date_trunc('minute', obstime) as obsmin, stn FROM public.obs_sbn
+                WHERE obstime > (NOW() - INTERVAL '5 days')
+                GROUP BY stn, date_trunc('minute', obstime);""", ttl="5m")
+
+# @st.cache_data(ttl=300)
+# def load_data(url):
+#     df = pd.read_csv(url)
+#     return df
+
 # Set the title and favicon that appear in the Browser's tab bar.
 st.set_page_config(
     page_title='GDP Dashboard',
@@ -25,7 +39,7 @@ def get_gdp_data():
     DATA_FILENAME = Path(__file__).parent/'data/gdp_data.csv'
     raw_gdp_df = pd.read_csv(DATA_FILENAME)
 
-    MIN_YEAR = 1960
+    MIN_YEAR = 1990
     MAX_YEAR = 2022
 
     # The data above has columns like:
@@ -71,6 +85,11 @@ notice, the data only goes to 2022 right now, and datapoints for certain years a
 But it's otherwise a great (and did I mention _free_?) source of data.
 '''
 
+''
+''
+
+st.dataframe(sbn_df, use_container_width=True)
+
 # Add some spacing
 ''
 ''
@@ -108,6 +127,13 @@ filtered_gdp_df = gdp_df[
 st.header('GDP over time', divider='gray')
 
 ''
+
+st.line_chart(
+    filtered_gdp_df,
+    x='Year',
+    y='GDP',
+    color='Country Code',
+)
 
 st.line_chart(
     filtered_gdp_df,
